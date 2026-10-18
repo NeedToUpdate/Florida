@@ -128,7 +128,7 @@ jobs:
     - name: Set up Python 3.9
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: "3.11"
 
     - name: install dependencies
       run: |
@@ -147,16 +147,11 @@ jobs:
         
         git clone --recurse-submodules -b ${{ needs.check_version.outputs.FRIDA_VERSION }} https://github.com/frida/frida
         cd frida
-        for path in ../patches/*
-        do
-          name=$(basename $path)
-          real=$(realpath $path)
-          echo "Apply patches in $real to frida/subprojects/$name"
-          cd subprojects/$name
-          for p in ../../../patches/$name/*.patch; do echo "apply $p"; git am --3way "$p" || { echo "SKIP $p (did not apply)"; git am --skip; }; done
-          cd ../..
-          echo $i
-        done
+        echo "Applying ONLY the agent-.so rename patch (memfd name -> random uuid); other Florida"
+        echo "patches are skipped: they conflict with this frida and are not needed for maps evasion."
+        cd subprojects/frida-core
+        git am --3way ../../../patches/frida-core/0002-Florida-frida_agent_so.patch
+        cd ../..
         cd ..
         
         ARCHES="android-arm android-arm64 android-x86 android-x86_64"
